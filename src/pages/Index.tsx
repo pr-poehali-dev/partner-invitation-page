@@ -15,9 +15,39 @@ interface Counterparty {
 
 const Index = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [secondarySidebarOpen, setSecondarySidebarOpen] = useState(true);
+  const [activeSection, setActiveSection] = useState<string>("invite");
   const [searchQuery, setSearchQuery] = useState("");
   const [counterparties, setCounterparties] = useState<Counterparty[]>([]);
+  const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const menuSections = [
+    { id: "invite", label: "+ Пригласить контрагентов", icon: "UserPlus" },
+    { id: "your", label: "Ваши контрагенты", icon: "Users", count: 0 },
+    { id: "invited-you", label: "Пригласили вас", icon: "UserCheck", count: 0 },
+    { id: "invited-by-you", label: "Приглашённые вами", icon: "Send", count: 0 },
+    { id: "blocked", label: "Заблокированные", icon: "Ban", count: 0 },
+  ];
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files[0];
+    if (file) {
+      toast.success(`Файл "${file.name}" загружен`);
+    }
+  };
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -49,58 +79,133 @@ const Index = () => {
   };
 
   return (
-    <div className="flex h-screen bg-background">
-      {/* Sidebar */}
-      <aside
-        className={`${
-          sidebarOpen ? "w-64" : "w-20"
-        } bg-card border-r border-border transition-all duration-300 flex flex-col`}
-      >
-        <div className="p-4 border-b border-border flex items-center justify-between">
-          {sidebarOpen && (
-            <h1 className="text-lg font-semibold text-primary">ПИБНАЯ</h1>
-          )}
+    <div className="flex h-screen bg-background relative">
+      {/* Primary Sidebar */}
+      <aside className="w-20 bg-primary text-white border-r border-primary/20 flex flex-col">
+        <div className="h-16 flex items-center justify-center border-b border-white/10">
+          <div className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center font-bold text-lg">
+            П
+          </div>
+        </div>
+
+        <nav className="flex-1 py-4 flex flex-col items-center space-y-2">
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="text-white hover:bg-white/20 bg-white/10 relative"
+            title="Контрагенты"
           >
-            <Icon name="Menu" size={20} />
+            <Icon name="Building2" size={20} />
+            <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-white rounded-l-full" />
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-white hover:bg-white/10"
+            title="Документы"
+          >
+            <Icon name="FileText" size={20} />
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-white hover:bg-white/10"
+            title="Настройки"
+          >
+            <Icon name="Settings" size={20} />
+          </Button>
+        </nav>
+
+        <div className="p-2 border-t border-white/10">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-white hover:bg-white/10"
+            title="Профиль"
+          >
+            <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center text-xs font-semibold">
+              ЮР
+            </div>
+          </Button>
+        </div>
+      </aside>
+
+      {/* Secondary Sidebar */}
+      <aside
+        className={`${
+          secondarySidebarOpen ? "w-72" : "w-0"
+        } bg-card border-r border-border transition-all duration-300 flex flex-col overflow-hidden`}
+      >
+        <div className="h-16 px-4 border-b border-border flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-foreground">Контрагенты</h2>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setSecondarySidebarOpen(false)}
+          >
+            <Icon name="PanelLeftClose" size={18} />
           </Button>
         </div>
 
-        <nav className="flex-1 p-4 space-y-2">
-          <Button
-            variant="default"
-            className="w-full justify-start gap-3"
-            size={sidebarOpen ? "default" : "icon"}
-          >
-            <Icon name="Building2" size={20} />
-            {sidebarOpen && <span>Контрагенты</span>}
-          </Button>
-
-          <Button
-            variant="ghost"
-            className="w-full justify-start gap-3"
-            size={sidebarOpen ? "default" : "icon"}
-          >
-            <Icon name="FileText" size={20} />
-            {sidebarOpen && <span>Документы</span>}
-          </Button>
-
-          <Button
-            variant="ghost"
-            className="w-full justify-start gap-3"
-            size={sidebarOpen ? "default" : "icon"}
-          >
-            <Icon name="Settings" size={20} />
-            {sidebarOpen && <span>Настройки</span>}
-          </Button>
+        <nav className="flex-1 p-2 space-y-0.5 overflow-y-auto">
+          {menuSections.map((section, index) => (
+            <Button
+              key={section.id}
+              variant={activeSection === section.id ? "default" : "ghost"}
+              className={`w-full justify-start gap-3 text-left h-11 ${
+                index === 0 ? "font-semibold" : ""
+              }`}
+              onClick={() => setActiveSection(section.id)}
+            >
+              <Icon name={section.icon as any} size={18} />
+              <span className="flex-1 truncate text-sm">{section.label}</span>
+              {section.count !== undefined && section.count > 0 && (
+                <Badge variant="secondary" className="h-5 px-1.5 text-xs">
+                  {section.count}
+                </Badge>
+              )}
+            </Button>
+          ))}
         </nav>
+
+        <div className="p-4 border-t border-border bg-muted/30">
+          <div className="grid grid-cols-3 gap-2 text-center">
+            <div className="space-y-1">
+              <div className="text-xl font-bold text-foreground">{counterparties.length}</div>
+              <div className="text-xs text-muted-foreground">Всего</div>
+            </div>
+            <div className="space-y-1">
+              <div className="text-xl font-bold text-primary">
+                {counterparties.filter(c => c.status === "active").length}
+              </div>
+              <div className="text-xs text-muted-foreground">Активные</div>
+            </div>
+            <div className="space-y-1">
+              <div className="text-xl font-bold text-muted-foreground">
+                {counterparties.filter(c => c.status === "pending").length}
+              </div>
+              <div className="text-xs text-muted-foreground">Ожидают</div>
+            </div>
+          </div>
+        </div>
       </aside>
 
+      {/* Toggle button when secondary sidebar is closed */}
+      {!secondarySidebarOpen && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="absolute left-20 top-4 z-50 shadow-md border border-border bg-card"
+          onClick={() => setSecondarySidebarOpen(true)}
+        >
+          <Icon name="ChevronRight" size={20} />
+        </Button>
+      )}
+
       {/* Main Content */}
-      <main className="flex-1 overflow-auto">
+      <main className="flex-1 overflow-auto relative">
         <div className="p-8 max-w-7xl mx-auto">
           {/* Header */}
           <div className="mb-8">
@@ -112,39 +217,41 @@ const Index = () => {
             </p>
           </div>
 
-          {/* Search and Upload */}
-          <div className="flex flex-col sm:flex-row gap-4 mb-8">
-            <div className="flex-1 relative">
-              <Icon
-                name="Search"
-                size={20}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-              />
-              <Input
-                placeholder="Поиск по названию или ИНН"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
-            </div>
+          {/* Search and Upload - only show when there are counterparties */}
+          {counterparties.length > 0 && (
+            <div className="flex flex-col sm:flex-row gap-4 mb-8">
+              <div className="flex-1 relative">
+                <Icon
+                  name="Search"
+                  size={20}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                />
+                <Input
+                  placeholder="Поиск по названию или ИНН"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
 
-            <label htmlFor="file-upload">
-              <Button variant="outline" className="gap-2 cursor-pointer" asChild>
-                <span>
-                  <Icon name="Upload" size={20} />
-                  Загрузить список ИНН
-                </span>
-              </Button>
-              <input
-                ref={fileInputRef}
-                id="file-upload"
-                type="file"
-                accept=".txt,.csv,.xlsx"
-                className="hidden"
-                onChange={handleFileUpload}
-              />
-            </label>
-          </div>
+              <label htmlFor="file-upload">
+                <Button variant="outline" className="gap-2 cursor-pointer" asChild>
+                  <span>
+                    <Icon name="Upload" size={20} />
+                    Загрузить список ИНН
+                  </span>
+                </Button>
+              </label>
+            </div>
+          )}
+          <input
+            ref={fileInputRef}
+            id="file-upload"
+            type="file"
+            accept=".txt,.csv,.xlsx"
+            className="hidden"
+            onChange={handleFileUpload}
+          />
 
           {/* Counterparties List */}
           <div className="space-y-4">
@@ -202,14 +309,33 @@ const Index = () => {
           </div>
 
           {filteredCounterparties.length === 0 && counterparties.length === 0 && (
-            <div className="relative min-h-[600px] flex items-center justify-center overflow-hidden">
+            <div 
+              className="relative min-h-[600px] flex items-center justify-center overflow-hidden"
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+            >
               {/* Animated background gradient */}
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-primary/10 animate-pulse" />
+              <div className={`absolute inset-0 bg-gradient-to-br transition-all duration-300 ${
+                isDragging 
+                  ? 'from-primary/20 via-primary/10 to-primary/20' 
+                  : 'from-primary/5 via-background to-primary/10 animate-pulse'
+              }`} />
               
               {/* Floating shapes */}
               <div className="absolute top-20 left-20 w-32 h-32 bg-primary/10 rounded-full blur-3xl animate-[pulse_4s_ease-in-out_infinite]" />
               <div className="absolute bottom-20 right-20 w-40 h-40 bg-primary/10 rounded-full blur-3xl animate-[pulse_5s_ease-in-out_infinite]" />
               <div className="absolute top-40 right-40 w-24 h-24 bg-primary/5 rounded-full blur-2xl animate-[pulse_6s_ease-in-out_infinite]" />
+
+              {/* Drag overlay */}
+              {isDragging && (
+                <div className="absolute inset-0 bg-primary/10 backdrop-blur-sm z-20 flex items-center justify-center border-4 border-dashed border-primary/50 m-8 rounded-3xl">
+                  <div className="text-center animate-[scale-in_0.2s_ease-out]">
+                    <Icon name="Upload" size={80} className="text-primary mx-auto mb-4 animate-bounce" />
+                    <p className="text-2xl font-bold text-primary">Отпустите файл для загрузки</p>
+                  </div>
+                </div>
+              )}
 
               {/* Main content */}
               <div className="relative z-10 max-w-2xl mx-auto text-center space-y-8 px-4">
@@ -248,63 +374,96 @@ const Index = () => {
                   </p>
                 </div>
 
-                {/* CTA buttons */}
-                <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-[fade-in_1s_ease-out]">
-                  <Button
-                    size="lg"
-                    className="gap-3 text-lg px-8 py-6 shadow-lg hover:shadow-xl transition-all hover:scale-105"
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    <Icon name="Upload" size={24} />
-                    Загрузить список ИНН
-                  </Button>
-                  
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    className="gap-3 text-lg px-8 py-6 hover:bg-primary hover:text-white transition-all hover:scale-105"
-                    onClick={() => {
-                      setCounterparties([
-                        {
-                          id: "demo-1",
-                          companyName: "ООО Транспортная Компания",
-                          inn: "7701234567",
-                          status: "active",
-                        },
-                        {
-                          id: "demo-2",
-                          companyName: "ИП Сергеев И.П.",
-                          inn: "771234567890",
-                          status: "invited",
-                        },
-                        {
-                          id: "demo-3",
-                          companyName: "ООО Строительная Группа",
-                          inn: "7712345678",
-                          status: "pending",
-                        },
-                      ]);
-                      toast.success("Демо-данные загружены");
-                    }}
-                  >
-                    <Icon name="Sparkles" size={24} />
-                    Попробовать с примером
-                  </Button>
+                {/* Drag and Drop Zone */}
+                <div 
+                  className="border-2 border-dashed border-primary/30 rounded-3xl p-12 bg-card/50 backdrop-blur-sm hover:border-primary/60 hover:bg-card/70 transition-all cursor-pointer group animate-[fade-in_1s_ease-out]"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <div className="flex flex-col items-center gap-4">
+                    <div className="relative">
+                      <div className="w-20 h-20 bg-primary/10 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <Icon name="Upload" size={40} className="text-primary" />
+                      </div>
+                      <div className="absolute -top-1 -right-1 w-6 h-6 bg-primary rounded-full flex items-center justify-center">
+                        <Icon name="Plus" size={14} className="text-white" />
+                      </div>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-lg font-semibold text-foreground mb-1">
+                        Перетащите файл сюда или нажмите для выбора
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        Поддерживаются форматы: .txt, .csv, .xlsx
+                      </p>
+                    </div>
+                  </div>
                 </div>
 
-                {/* Quick stats */}
-                <div className="grid grid-cols-3 gap-6 max-w-xl mx-auto mt-12 animate-[fade-in_1.2s_ease-out]">
-                  <div className="p-4 bg-card/50 backdrop-blur-sm rounded-xl border border-border/50 hover:border-primary/50 transition-colors">
-                    <div className="text-3xl font-bold text-primary mb-1">0</div>
-                    <div className="text-sm text-muted-foreground">Активных</div>
+                {/* Divider */}
+                <div className="relative animate-[fade-in_1.1s_ease-out]">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-border"></div>
                   </div>
-                  <div className="p-4 bg-card/50 backdrop-blur-sm rounded-xl border border-border/50 hover:border-primary/50 transition-colors">
-                    <div className="text-3xl font-bold text-primary mb-1">0</div>
-                    <div className="text-sm text-muted-foreground">Приглашено</div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-background px-4 text-muted-foreground">или</span>
                   </div>
-                  <div className="p-4 bg-card/50 backdrop-blur-sm rounded-xl border border-border/50 hover:border-primary/50 transition-colors">
-                    <div className="text-3xl font-bold text-primary mb-1">0</div>
-                    <div className="text-sm text-muted-foreground">Ожидает</div>
+                </div>
+
+                {/* Demo button */}
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="gap-3 text-base px-8 py-6 hover:bg-primary hover:text-white transition-all hover:scale-105 animate-[fade-in_1.2s_ease-out]"
+                  onClick={() => {
+                    setCounterparties([
+                      {
+                        id: "demo-1",
+                        companyName: "ООО Транспортная Компания",
+                        inn: "7701234567",
+                        status: "active",
+                      },
+                      {
+                        id: "demo-2",
+                        companyName: "ИП Сергеев И.П.",
+                        inn: "771234567890",
+                        status: "invited",
+                      },
+                      {
+                        id: "demo-3",
+                        companyName: "ООО Строительная Группа",
+                        inn: "7712345678",
+                        status: "pending",
+                      },
+                    ]);
+                    toast.success("Демо-данные загружены");
+                  }}
+                >
+                  <Icon name="Sparkles" size={20} />
+                  Попробовать с демо-данными
+                </Button>
+
+                {/* Feature highlights */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto mt-12 animate-[fade-in_1.3s_ease-out]">
+                  <div className="p-6 bg-gradient-to-br from-primary/5 to-transparent rounded-2xl border border-border/50 text-left group hover:shadow-lg transition-all">
+                    <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                      <Icon name="Zap" size={20} className="text-primary" />
+                    </div>
+                    <h4 className="font-semibold text-foreground mb-1">Быстрая загрузка</h4>
+                    <p className="text-sm text-muted-foreground">Массовое добавление контрагентов из файла</p>
+                  </div>
+                  <div className="p-6 bg-gradient-to-br from-primary/5 to-transparent rounded-2xl border border-border/50 text-left group hover:shadow-lg transition-all">
+                    <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                      <Icon name="ShieldCheck" size={20} className="text-primary" />
+                    </div>
+                    <h4 className="font-semibold text-foreground mb-1">Безопасно</h4>
+                    <p className="text-sm text-muted-foreground">Проверка и валидация всех данных</p>
+                  </div>
+                  <div className="p-6 bg-gradient-to-br from-primary/5 to-transparent rounded-2xl border border-border/50 text-left group hover:shadow-lg transition-all">
+                    <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                      <Icon name="BarChart3" size={20} className="text-primary" />
+                    </div>
+                    <h4 className="font-semibold text-foreground mb-1">Аналитика</h4>
+                    <p className="text-sm text-muted-foreground">Отслеживание статусов и истории</p>
                   </div>
                 </div>
               </div>
