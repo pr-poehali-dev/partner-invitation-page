@@ -263,6 +263,49 @@ const Index = () => {
                     Показать пример
                   </Button>
                 </div>
+
+                {/* Search History */}
+                {searchHistory.length > 0 && (
+                  <div className="max-w-2xl mx-auto mt-12">
+                    <div className="p-6 bg-muted/30 rounded-3xl border border-border">
+                      <div className="flex items-center justify-between mb-5">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center">
+                            <Icon name="History" size={18} className="text-primary" />
+                          </div>
+                          <h3 className="font-semibold text-base text-foreground">
+                            Искали ранее
+                          </h3>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="gap-2 h-9 text-xs hover:text-destructive hover:bg-destructive/10"
+                          onClick={() => {
+                            setSearchHistory([]);
+                            toast.success("История очищена");
+                          }}
+                        >
+                          <Icon name="Trash2" size={14} />
+                          Очистить
+                        </Button>
+                      </div>
+
+                      <div className="flex flex-wrap gap-2.5">
+                        {searchHistory.map((item, index) => (
+                          <button
+                            key={index}
+                            onClick={() => setSearchQuery(item)}
+                            className="px-5 py-2.5 bg-background border border-border rounded-full text-sm font-medium text-foreground hover:border-primary hover:bg-primary/5 hover:text-primary transition-all flex items-center gap-2 group shadow-sm hover:shadow"
+                          >
+                            <Icon name="Search" size={14} className="text-muted-foreground group-hover:text-primary transition-colors" />
+                            <span>{item}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Drag Overlay */}
@@ -346,42 +389,6 @@ const Index = () => {
                     <span>
                       Найдено: <strong className="text-foreground">{filteredCounterparties.length}</strong> из {counterparties.length}
                     </span>
-                  </div>
-                )}
-
-                {/* Search History */}
-                {searchHistory.length > 0 && (
-                  <div className="mt-6 p-5 bg-muted/30 rounded-2xl border border-border">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center gap-2">
-                        <Icon name="History" size={18} className="text-muted-foreground" />
-                        <h3 className="font-semibold text-sm text-foreground">
-                          Искали ранее
-                        </h3>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="gap-1.5 h-8 text-xs"
-                        onClick={() => setSearchHistory([])}
-                      >
-                        <Icon name="Trash2" size={14} />
-                        Очистить
-                      </Button>
-                    </div>
-
-                    <div className="flex flex-wrap gap-2">
-                      {searchHistory.map((item, index) => (
-                        <button
-                          key={index}
-                          onClick={() => setSearchQuery(item)}
-                          className="px-4 py-2 bg-background border border-border rounded-full text-sm text-foreground hover:border-primary hover:bg-primary/5 transition-all flex items-center gap-2 group"
-                        >
-                          <Icon name="Search" size={14} className="text-muted-foreground group-hover:text-primary transition-colors" />
-                          <span>{item}</span>
-                        </button>
-                      ))}
-                    </div>
                   </div>
                 )}
               </div>
