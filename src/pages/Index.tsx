@@ -438,8 +438,8 @@ const Index = () => {
                     className="gap-2 h-14 px-6 rounded-2xl shadow-lg hover:shadow-xl transition-all hover:scale-105"
                     onClick={() => fileInputRef.current?.click()}
                   >
-                    <Icon name="Plus" size={20} />
-                    Добавить
+                    <Icon name="Upload" size={20} />
+                    Загрузить файл
                   </Button>
                   <input
                     ref={fileInputRef}
