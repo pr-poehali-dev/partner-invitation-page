@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -19,6 +19,7 @@ const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [counterparties, setCounterparties] = useState<Counterparty[]>([]);
   const [isDragging, setIsDragging] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
   const [searchHistory, setSearchHistory] = useState<string[]>([
     "ООО Ромашка",
     "7728562345",
@@ -67,12 +68,65 @@ const Index = () => {
     }
   };
 
+  // Автопоиск при вводе текста
+  useEffect(() => {
+    const searchTimeout = setTimeout(() => {
+      if (searchQuery.trim().length >= 3) {
+        performSearch(searchQuery.trim());
+      }
+    }, 500); // Задержка 500мс после ввода
+
+    return () => clearTimeout(searchTimeout);
+  }, [searchQuery]);
+
+  const performSearch = async (query: string) => {
+    setIsSearching(true);
+    
+    try {
+      // Имитация API-запроса (замените на реальный API)
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      // Демо-данные для примера
+      const mockResults: Counterparty[] = [
+        {
+          id: `search-${Date.now()}-1`,
+          companyName: `ООО "${query}"`,
+          inn: "7701234567",
+          status: "pending",
+        },
+        {
+          id: `search-${Date.now()}-2`,
+          companyName: `${query} Плюс`,
+          inn: "7712345678",
+          status: "pending",
+        },
+        {
+          id: `search-${Date.now()}-3`,
+          companyName: `Компания ${query}`,
+          inn: "7723456789",
+          status: "pending",
+        },
+      ];
+      
+      setCounterparties(mockResults);
+      
+      // Добавляем в историю поиска
+      if (!searchHistory.includes(query)) {
+        setSearchHistory(prev => [query, ...prev].slice(0, 5));
+      }
+    } catch (error) {
+      toast.error("Ошибка поиска");
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
   const handleSearchChange = (value: string) => {
     setSearchQuery(value);
     
-    // Добавляем в историю только если длина >= 3 символов и не пустая строка
-    if (value.trim().length >= 3 && !searchHistory.includes(value.trim())) {
-      setSearchHistory(prev => [value.trim(), ...prev].slice(0, 5)); // Оставляем только последние 5
+    // Очищаем результаты если поле пустое
+    if (value.trim().length === 0) {
+      setCounterparties([]);
     }
   };
 
@@ -223,9 +277,14 @@ const Index = () => {
                     <Input
                       placeholder="Поиск по названию или ИНН"
                       value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
+                      onChange={(e) => handleSearchChange(e.target.value)}
                       className="pl-12 h-14 text-base"
                     />
+                    {isSearching && (
+                      <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                        <Icon name="Loader2" size={20} className="text-muted-foreground animate-spin" />
+                      </div>
+                    )}
                   </div>
                 </div>
 
