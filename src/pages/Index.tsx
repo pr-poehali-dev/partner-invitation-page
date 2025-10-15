@@ -19,6 +19,11 @@ const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [counterparties, setCounterparties] = useState<Counterparty[]>([]);
   const [isDragging, setIsDragging] = useState(false);
+  const [searchHistory, setSearchHistory] = useState<string[]>([
+    "ООО Ромашка",
+    "7728562345",
+    "Яндекс"
+  ]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const menuSections = [
@@ -341,6 +346,42 @@ const Index = () => {
                     <span>
                       Найдено: <strong className="text-foreground">{filteredCounterparties.length}</strong> из {counterparties.length}
                     </span>
+                  </div>
+                )}
+
+                {/* Search History */}
+                {searchHistory.length > 0 && (
+                  <div className="mt-6 p-5 bg-muted/30 rounded-2xl border border-border">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-2">
+                        <Icon name="History" size={18} className="text-muted-foreground" />
+                        <h3 className="font-semibold text-sm text-foreground">
+                          Искали ранее
+                        </h3>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="gap-1.5 h-8 text-xs"
+                        onClick={() => setSearchHistory([])}
+                      >
+                        <Icon name="Trash2" size={14} />
+                        Очистить
+                      </Button>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2">
+                      {searchHistory.map((item, index) => (
+                        <button
+                          key={index}
+                          onClick={() => setSearchQuery(item)}
+                          className="px-4 py-2 bg-background border border-border rounded-full text-sm text-foreground hover:border-primary hover:bg-primary/5 transition-all flex items-center gap-2 group"
+                        >
+                          <Icon name="Search" size={14} className="text-muted-foreground group-hover:text-primary transition-colors" />
+                          <span>{item}</span>
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
