@@ -67,6 +67,15 @@ const Index = () => {
     }
   };
 
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+    
+    // Добавляем в историю только если длина >= 3 символов и не пустая строка
+    if (value.trim().length >= 3 && !searchHistory.includes(value.trim())) {
+      setSearchHistory(prev => [value.trim(), ...prev].slice(0, 5)); // Оставляем только последние 5
+    }
+  };
+
   const filteredCounterparties = counterparties.filter(
     (cp) =>
       cp.companyName.toLowerCase().includes(searchQuery.toLowerCase()) ||
