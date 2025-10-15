@@ -285,34 +285,26 @@ const Index = () => {
           {/* With Content */}
           {counterparties.length > 0 && (
             <>
-              {/* Header with Search */}
-              <div className="mb-8">
-                <h2 className="text-3xl font-bold text-foreground mb-6">
-                  Приглашение контрагентов
-                </h2>
-                
-                <div className="flex gap-3">
-                  <div className="flex-1 relative">
-                    <Icon
-                      name="Search"
-                      size={20}
-                      className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-                    />
-                    <Input
-                      placeholder="Поиск по названию или ИНН"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-10"
-                    />
+              {/* Sticky Header with Search */}
+              <div className="sticky top-0 bg-background/95 backdrop-blur-sm z-10 pb-6 mb-6 border-b border-border">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h2 className="text-2xl font-bold text-foreground">
+                      Контрагенты
+                    </h2>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Найдено: {filteredCounterparties.length}
+                    </p>
                   </div>
-
+                  
                   <Button
                     variant="outline"
+                    size="sm"
                     className="gap-2"
                     onClick={() => fileInputRef.current?.click()}
                   >
-                    <Icon name="Upload" size={20} />
-                    Загрузить файл
+                    <Icon name="Plus" size={16} />
+                    Добавить
                   </Button>
                   <input
                     ref={fileInputRef}
@@ -322,54 +314,114 @@ const Index = () => {
                     onChange={handleFileUpload}
                   />
                 </div>
+                
+                <div className="relative">
+                  <Icon
+                    name="Search"
+                    size={18}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                  />
+                  <Input
+                    placeholder="Поиск по названию или ИНН"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10 h-10"
+                  />
+                </div>
               </div>
 
-              {/* Counterparties List */}
-              <div className="space-y-3">
-                {filteredCounterparties.map((counterparty) => (
-                  <Card
+              {/* Counterparties Grid */}
+              <div className="grid grid-cols-1 gap-4">
+                {filteredCounterparties.map((counterparty, index) => (
+                  <div
                     key={counterparty.id}
-                    className="hover:shadow-md transition-shadow"
+                    className="group relative bg-card border border-border rounded-2xl p-5 hover:shadow-lg hover:border-primary/50 transition-all duration-300 cursor-pointer"
+                    style={{ animationDelay: `${index * 50}ms` }}
                   >
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                            <Icon name="Building2" size={20} className="text-primary" />
-                          </div>
-                          <div>
-                            <h3 className="font-semibold text-base">
+                    {/* Status indicator line */}
+                    <div className={`absolute left-0 top-5 bottom-5 w-1 rounded-r-full ${
+                      counterparty.status === 'active' ? 'bg-primary' :
+                      counterparty.status === 'invited' ? 'bg-secondary' :
+                      'bg-muted'
+                    }`} />
+
+                    <div className="flex items-start gap-4 ml-3">
+                      {/* Avatar with initial */}
+                      <div className="relative flex-shrink-0">
+                        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/20 group-hover:scale-110 transition-transform">
+                          <span className="text-lg font-bold text-primary">
+                            {counterparty.companyName.charAt(0)}
+                          </span>
+                        </div>
+                        {/* Status dot */}
+                        <div className={`absolute -top-1 -right-1 w-4 h-4 rounded-full border-2 border-card ${
+                          counterparty.status === 'active' ? 'bg-green-500' :
+                          counterparty.status === 'invited' ? 'bg-blue-500' :
+                          'bg-gray-400'
+                        }`} />
+                      </div>
+
+                      {/* Content */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-4 mb-2">
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-semibold text-lg text-foreground mb-1 truncate group-hover:text-primary transition-colors">
                               {counterparty.companyName}
                             </h3>
-                            <p className="text-sm text-muted-foreground">
-                              ИНН: {counterparty.inn}
-                            </p>
+                            <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                              <span className="flex items-center gap-1">
+                                <Icon name="FileText" size={14} />
+                                {counterparty.inn}
+                              </span>
+                            </div>
                           </div>
-                        </div>
 
-                        <div className="flex items-center gap-3">
-                          <Badge variant={getStatusBadge(counterparty.status).variant}>
+                          <Badge 
+                            variant={getStatusBadge(counterparty.status).variant}
+                            className="flex-shrink-0"
+                          >
                             {getStatusBadge(counterparty.status).label}
                           </Badge>
+                        </div>
 
+                        {/* Actions */}
+                        <div className="flex items-center gap-2 mt-4 pt-4 border-t border-border/50">
                           {counterparty.status === "pending" && (
                             <Button
                               size="sm"
-                              className="gap-2"
-                              onClick={() => handleInvite(counterparty.id)}
+                              className="gap-2 flex-1"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleInvite(counterparty.id);
+                              }}
                             >
-                              <Icon name="Send" size={16} />
-                              Пригласить
+                              <Icon name="Send" size={14} />
+                              Отправить приглашение
+                            </Button>
+                          )}
+                          
+                          {counterparty.status !== "pending" && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="gap-2 flex-1"
+                            >
+                              <Icon name="Eye" size={14} />
+                              Просмотр
                             </Button>
                           )}
 
-                          <Button variant="ghost" size="icon">
-                            <Icon name="MoreVertical" size={18} />
+                          <Button 
+                            size="sm" 
+                            variant="ghost"
+                            className="gap-2"
+                          >
+                            <Icon name="MoreHorizontal" size={16} />
                           </Button>
                         </div>
                       </div>
-                    </CardContent>
-                  </Card>
+                    </div>
+                  </div>
                 ))}
               </div>
 
