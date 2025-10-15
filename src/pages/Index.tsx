@@ -286,24 +286,43 @@ const Index = () => {
           {counterparties.length > 0 && (
             <>
               {/* Sticky Header with Search */}
-              <div className="sticky top-0 bg-background/95 backdrop-blur-sm z-10 pb-6 mb-6 border-b border-border">
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <h2 className="text-2xl font-bold text-foreground">
-                      Контрагенты
-                    </h2>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Найдено: {filteredCounterparties.length}
-                    </p>
+              <div className="sticky top-0 bg-background z-10 pb-6 mb-6">
+                {/* Compact header */}
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="flex-1 relative group">
+                    {/* Floating label */}
+                    {!searchQuery && (
+                      <div className="absolute left-4 -top-2 px-2 bg-background text-xs text-muted-foreground group-focus-within:text-primary transition-colors z-10">
+                        Поиск контрагентов
+                      </div>
+                    )}
+                    <Icon
+                      name="Search"
+                      size={20}
+                      className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors"
+                    />
+                    <Input
+                      placeholder="Введите название компании или ИНН..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-12 pr-4 h-14 text-base border-2 rounded-2xl focus-visible:ring-0 focus-visible:border-primary transition-all"
+                    />
+                    {searchQuery && (
+                      <button
+                        onClick={() => setSearchQuery("")}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        <Icon name="X" size={18} />
+                      </button>
+                    )}
                   </div>
                   
                   <Button
-                    variant="outline"
-                    size="sm"
-                    className="gap-2"
+                    size="lg"
+                    className="gap-2 h-14 px-6 rounded-2xl shadow-lg hover:shadow-xl transition-all hover:scale-105"
                     onClick={() => fileInputRef.current?.click()}
                   >
-                    <Icon name="Plus" size={16} />
+                    <Icon name="Plus" size={20} />
                     Добавить
                   </Button>
                   <input
@@ -314,20 +333,16 @@ const Index = () => {
                     onChange={handleFileUpload}
                   />
                 </div>
-                
-                <div className="relative">
-                  <Icon
-                    name="Search"
-                    size={18}
-                    className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-                  />
-                  <Input
-                    placeholder="Поиск по названию или ИНН"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 h-10"
-                  />
-                </div>
+
+                {/* Results counter */}
+                {filteredCounterparties.length > 0 && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+                    <Icon name="CheckCircle2" size={16} className="text-primary" />
+                    <span>
+                      Найдено: <strong className="text-foreground">{filteredCounterparties.length}</strong> из {counterparties.length}
+                    </span>
+                  </div>
+                )}
               </div>
 
               {/* Counterparties Grid */}
